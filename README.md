@@ -7,33 +7,42 @@ This repo contains two scripts:
 
 | Script | Description |
 |--------|-------------|
-| **training_validation_ABCD6.0.R** | Trains a model to predict brain age from imaging features |
-| **predict_test_set_ABCD6.0.R**  | Loads a saved model and evaluates it or predicts on new data |
+| **training_validation_ABCD6.0.R** | Trains an XGBoost model to predict brain age from imaging features using 5-fold cross-validation with 2 repeats and a 400-point Latin hypercube hyperparameter grid |
+| **predict_test_set_ABCD6.0.R**  | Applies the trained model to the held-out test sample and performs age-bias correction |
 
 These scripts are used for brain age testing and training used in \
 Beck et al. (https://www.medrxiv.org/content/10.64898/2025.12.31.25343265v2)
 
+## Model
+
+Brain age is predicted using gradient boosted regression trees (XGBoost) with the following key design choices:
+
+- Target variable: chronological age at scan
+- Predictors: imaging-derived features (modality-specific; see below)
+- Sex excluded from predictors so the model captures age-related brain variation independent of sex
+- Hyperparameter tuning: 7 parameters jointly tuned (number of trees, tree depth, minimum node size, loss reduction, subsample proportion, column subsample, learning rate) using a 400-point Latin hypercube grid evaluated via 5-fold cross-validation × 2 repeats, stratified by age
+- Model selection: parsimonious parameter set selected using the one-standard-error rule on mean absolute error
+- Preprocessing: near-zero-variance removal and normalisation applied within each cross-validation fold to prevent data leakage
+
 ## Data preparation
 
-Prepare your data files into two data frames; one for the training (and validation) sample, and one for the hold-out test sample. In my data preparation, I make a Sample1.Rda (loaded in the first script), and a Sample2.Rda (loaded in second script). These two data frames represent a 50:50 cohort split using the ABCD Study data (baseline and two-year follow-up - release 5.1) following QC and longCombat harmonization of imaging data.
-
-The 50:50 split includes a subject-wise split across time-points that ensures baseline and follow-up scans from the same participant remain in the same partition, avoiding identify-confounding. Siblings are dealt with using a group shuffle split with family ID as the group indicator to ensure that no siblings were split across training and test sets. Sex that is not equal to 1 or 2 is removed. The resulting two data frames (sample1 and sample2) represent a final N that is identical (or difference of 1) and has as equal as possible distribution of age range, sex split, and cross-sectional versus longitudinal data points.
-
+- Data are split 50:50 into a training/validation sample (Sample 1) and a held-out test sample (Sample 2) prior to running these scripts. The split is:
+- Family-aware: siblings are kept within the same partition using a group shuffle split with family ID as the grouping variable, ensuring no family members are split across training and test sets
+Participant-aware: all imaging waves from the same participant remain in the same partition, preventing identity confounding across the four longitudinal waves
+Balanced: age distribution, sex ratio, and proportion of longitudinal versus cross-sectional observations are matched across partitions
+- Imaging data are harmonised across scanners using LongComBat prior to model training, applied at the scanner level to account for sites operating multiple scanner models or undergoing scanner upgrades across the four waves. The overall train/validation/test split is therefore 40/10/50 percent of the full sample.
 
 ## Instructions
 
 ### 1. Training
-Rscript training_validation.R
+Rscript training_validation_ABCD6.0.R
 
-In this script, Sample1.Rda is loaded as the training sample following data preparation steps outlined above.
-A training/validation split at 80:20 is made (meaning the overarching sample split for training/validation/testing is 40/10/50 percent).
-
+Sample1.Rda is loaded as the training sample. An internal 80:20 split produces a training set and a validation set used for age-bias correction.
 
 ### 2. Test / predict
-Rscript predict_test_set.R
+Rscript predict_test_set_ABCD6.0.R
 
-In this script, Sample2.Rda (hold-out sample) is loaded as the test set.
-Age-bias correction to reduce regression to the mean is carried out using correction procedures outlined in de Lange & Cole (https://doi.org/10.1016/j.nicl.2020.102229).
+Sample2.Rda is loaded as the held-out test set. Predictions are generated and age-bias correction is applied using the validation set following the procedure described in de Lange & Cole (https://doi.org/10.1016/j.nicl.2020.102229).
 
 
 ## Notes
@@ -43,7 +52,7 @@ The scripts above use T1-weighted imaging data but scripts are also available fo
 
 
 ### Contact
-If you have any questions about the code or wish to collaborate, please contact me at [dani.beck@psykologi.uio.no](mailto:dani.beck@psykologi.uio)
+For questions about the code or to discuss collaboration, please contact [dani.beck@psykologi.uio.no](mailto:dani.beck@psykologi.uio)
 
 
 
