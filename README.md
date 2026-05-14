@@ -7,8 +7,8 @@ This repo contains two scripts:
 
 | Script | Description |
 |--------|-------------|
-| **training_validation.R** | Trains a model to predict brain age from imaging features |
-| **predict_test_set.R**  | Loads a saved model and evaluates it or predicts on new data |
+| **training_validation_ABCD6.0.R** | Trains a model to predict brain age from imaging features |
+| **predict_test_set_ABCD6.0.R**  | Loads a saved model and evaluates it or predicts on new data |
 
 These scripts are used for brain age testing and training used in \
 Beck et al. (https://www.medrxiv.org/content/10.64898/2025.12.31.25343265v2)
