@@ -39,7 +39,7 @@ Age-bias correction to reduce regression to the mean is carried out using correc
 ## Notes
 
 The scripts above use T1-weighted imaging data but scripts are also available for dMRI, rs-fMRI, and a multi-modal model. The figure below shows performance of each model using the code in this repository.
-![Brain-age-performance](age_pred_all_models.png)
+![Brain-age-performance](age_pred_png.png)
 
 
 ### Contact
